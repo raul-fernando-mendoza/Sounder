@@ -31,12 +31,12 @@ struct Queue {
     
     private var movementsAgg:[Float] = [0.0, 0.0 ,0.0 ,0.0 ,0.0 ,0.0 ]
     private var movementsAggPrevious:[Float] = [0.0, 0.0 ,0.0 ,0.0 ,0.0 ,0.0 ]
-    private var previousGesture:Gesture? = nil
-    private var previousGestureChange:Gesture? = nil
+    private var previousGesture:[Gesture?] = [Gesture?](repeating:nil,count:6)
+    private var previousGestureChange:[Gesture?] = [Gesture?](repeating:nil,count:6)
     
    
 
-
+    
     
     private var initialized = false
     
@@ -49,7 +49,7 @@ struct Queue {
         }
     }
     func toRange(_ value:Float,_ upperLimit:Float,_ lowerLimit:Float) -> Float{
-        return Float(abs(value - (upperLimit - lowerLimit) / 2)) / Float( (upperLimit - lowerLimit) / 2)
+        return (value) / (upperLimit - lowerLimit)
     }
     func biggerIndexAgg(_ values:[Float]) -> Int{
         var idx:Int = 0
@@ -107,8 +107,7 @@ struct Queue {
                   break
               }
           }
-          // now sum all the rest
-        
+          // now sum all the rest and find the previous if exist
           for e in elements{
             if(e.getStartTime() >= lastTime){
                 let translated = e.getTranslated()
@@ -122,10 +121,9 @@ struct Queue {
       
       
       if( initialized ){
-          g = recognizeRest(e)
-          if g == nil {
+      
               g =  recognizeDireccionChange(e)
-          }
+         
       }
       movementsAggPrevious = movementsAgg
       
@@ -165,8 +163,6 @@ struct Queue {
         }
         if isRest == true {
             g = Gesture(idx:-1, type: TypeEvent.rest,agg: 0.0, delta: 0.0, level: 0.0)
-            previousGesture = g
-            previousGestureChange = g
         }
         else{
             g = nil
@@ -193,48 +189,50 @@ struct Queue {
         
         //find out the delta
         var delta:Float = 0.0
-        if previousGesture != nil {
+        if previousGesture[idx] != nil {
             delta = movementsAgg[idx] - movementsAggPrevious[idx]
         }
         
         //find out the level
-        let pct = toRange(agg[idx], limitsMoveUp[idx], limitsMoveDown[idx])
+        var pct:Float = 1.0
         
         
         
         // find out if there was a change of direction
-        if let pg = previousGesture {
+        if let pg = previousGesture[idx] {
             if (idx == pg.idx){
                 if pg.type == TypeEvent.up && direction==TypeEvent.down{
-                    if let prev = previousGestureChange {
-                        delta = movementsAgg[idx] - prev.agg
+                    if let prevChange = previousGestureChange[idx] {
+                        delta =  pg.agg - prevChange.agg
+                        pct = toRange(abs(delta), limitsMoveUp[idx], limitsMoveDown[idx])
                     }
-                    g = Gesture(idx: idx,type: TypeEvent.upDown,agg: movementsAgg[idx], delta: delta,level: pct)
-                    previousGesture = g
-                    previousGestureChange = g
+                    g = Gesture(idx: idx,type: TypeEvent.upDown,agg: pg.agg, delta: delta,level: pct)
+                    previousGesture[idx] = g
+                    previousGestureChange[idx] = g
                 }
                 else if pg.type == TypeEvent.down && direction==TypeEvent.up{
-                    if let prev = previousGestureChange {
-                        delta = movementsAgg[idx] - prev.agg
+                    if let prevChange = previousGestureChange[idx] {
+                        delta = pg.agg - prevChange.agg
+                        pct = toRange(abs(delta), limitsMoveUp[idx], limitsMoveDown[idx])
                     }
-                    g = Gesture(idx: idx, type: TypeEvent.downUp,agg: movementsAgg[idx], delta: delta,level: pct)
-                    previousGesture = g
-                    previousGestureChange = g
+                    g = Gesture(idx: idx, type: TypeEvent.downUp,agg: pg.agg, delta: delta,level: pct)
+                    previousGesture[idx] = g
+                    previousGestureChange[idx] = g
                 }
                 else{
                         g = Gesture(idx: idx, type: direction,agg: movementsAgg[idx], delta: delta,level: pct)
-                        previousGesture = g
+                        previousGesture[idx] = g
                 }
             }
             else{
                     g = Gesture(idx: idx, type: direction,agg: movementsAgg[idx], delta: delta,level: pct)
-                    previousGesture = g
+                    previousGesture[idx] = g
             }
             
         }
         else{
             g = Gesture(idx: idx, type: direction,agg: movementsAgg[idx], delta: delta,level: pct)
-            previousGesture = g
+            previousGesture[idx] = g
         }
        return g
         

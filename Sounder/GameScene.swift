@@ -255,7 +255,7 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
     func processMessage(timeCurrent:Int,timePrevious:Int,raw:[Int],buttonStatus:Int){
         let ge = GiroEvent( startTime: timePrevious,endTime: timeCurrent,raw: raw)
 
-        if let gesture = giroEventQueue.push(ge){
+        if let gesture = giroEventQueue.push(ge) {
             var str = "Agg:"
             let movementsAgg = giroEventQueue.getAggEvent()
             for i in 0...5{
@@ -264,33 +264,33 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
             log( str )
             
             log("Gesture:\(gesture)")
-            if gesture.type == TypeEvent.upDown  && gesture.agg > 3 && abs(gesture.delta) > 7 {
+            if buttonToggleStatus && gesture.type == TypeEvent.upDown  && gesture.agg > 3 && gesture.delta > 4 {
                 log(">               >>>>>>>>>>>>>>>>>")
                 
                 if( playerxUp[0]!.isPlaying == false){
                     
-                    playerxUp[0]!.volume = 1.0
+                    playerxUp[0]!.volume = gesture.level
                     playerxUp[0]!.play()
                 }
                 else if( playerxUp[1]!.isPlaying == false){
                     
-                    playerxUp[1]!.volume = 1.0
+                    playerxUp[1]!.volume = gesture.level
                     playerxUp[1]!.play()
                 }
                 else{
                     print("ªªªª ERROR UP is already playing")
                 }
             }
-            else if gesture.type == TypeEvent.downUp && gesture.agg < -3 &&  abs(gesture.delta) > 7 {
+            else if buttonToggleStatus && gesture.type == TypeEvent.downUp && gesture.agg < -3 &&  gesture.delta < -4 {
                 
                 log("<<<<<<<<<<<<<<<<                <")
                 
                 if( playerxDown[0]!.isPlaying == false){
-                    playerxDown[0]!.volume = 1.0
+                    playerxDown[0]!.volume = gesture.level
                     playerxDown[0]!.play()
                 }
                 else if( playerxDown[1]!.isPlaying == false){
-                    playerxDown[1]!.volume = 1.0
+                    playerxDown[1]!.volume = gesture.level
                     playerxDown[1]!.play()
                 }
                 else{
