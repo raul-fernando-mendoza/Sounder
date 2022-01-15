@@ -62,8 +62,8 @@
             filePath = "Sounder/GameScene.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "257"
-            endingLineNumber = "257"
+            startingLineNumber = "289"
+            endingLineNumber = "289"
             landmarkName = "processMessage(timeCurrent:timePrevious:raw:buttonStatus:)"
             landmarkType = "7">
          </BreakpointContent>

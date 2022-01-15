@@ -42,14 +42,19 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
     
     
     
-    let xUpURL = Bundle.main.url(forResource: "python_sounds_dum", withExtension: "wav")
+    let xUpURL = Bundle.main.url(forResource: "python_sounds_4b", withExtension: "wav")
     var playerxUp:[AVAudioPlayer?] = []
-    let xDownURL = Bundle.main.url(forResource: "python_sounds_tac", withExtension: "wav")
+    let xDownURL = Bundle.main.url(forResource: "python_sounds_4c", withExtension: "wav")
     var playerxDown:[AVAudioPlayer?] = []
-    let yUpURL = Bundle.main.url(forResource: "python_sounds_4b", withExtension: "wav")
-    let yDownURL = Bundle.main.url(forResource: "python_sounds_4c", withExtension: "wav")
+    let yUpURL = Bundle.main.url(forResource: "python_sounds_dum" , withExtension: "wav")
+    var playeryUp:[AVAudioPlayer?] = []
+    let yDownURL = Bundle.main.url(forResource: "python_sounds_tac" , withExtension: "wav")
+    var playeryDown:[AVAudioPlayer?] = []
     
+    var playersUp:[[AVAudioPlayer?]] = []
+    var playersDown:[[AVAudioPlayer?]] = []
      
+     /*
     let xUp = SKAction.playSoundFileNamed("python_sounds_dum.wav", waitForCompletion: false)
     var xUpPlaying = false
     let xDown = SKAction.playSoundFileNamed("python_sounds_tac.wav", waitForCompletion: false)
@@ -58,6 +63,7 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
     var yUpPlaying = false
     let yDown = SKAction.playSoundFileNamed("python_sounds_4c.wav", waitForCompletion: false)
     var yDownPlaying = false
+      */
     
     
     let gX = 0
@@ -98,26 +104,39 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
          
     }
     
-    func play(_ soundFileURL:URL, volume:Float){
-        do{
-            
-            /*if player != nil {
-                if player!.isPlaying == false{
-                    player = try AVAudioPlayer(contentsOf: soundFileURL)
-                    print("playihg \(volume)")
-                    player!.volume = volume
-                    player!.play()
-                }
+    func play(_ idx:Int,_ te:TypeEvent,_ volume:Float){
+        
+        if te == TypeEvent.up{
+            let playerUp = playersUp[idx]
+            if( playerUp[0]!.isPlaying == false){
+                
+                playerUp[0]!.volume = 1
+                playerUp[0]!.play()
             }
-            else{*/
-                let player = try AVAudioPlayer(contentsOf: soundFileURL)
-                Log.debug("playihg \(volume)")
-                player.volume = volume
-                player.play()
-            //}
-           //}
-        } catch{
-            print("ERROR")
+            else if( playerUp[1]!.isPlaying == false){
+                
+                playerUp[1]!.volume = 1
+                playerUp[1]!.play()
+            }
+            else{
+                print("ªªªª ERROR UP is already playing")
+            }
+        }
+        else if te == TypeEvent.down{
+            let playerDown = playersDown[idx]
+            if( playerDown[0]!.isPlaying == false){
+                
+                playerDown[0]!.volume = 1
+                playerDown[0]!.play()
+            }
+            else if( playerDown[1]!.isPlaying == false){
+                
+                playerDown[1]!.volume = 1
+                playerDown[1]!.play()
+            }
+            else{
+                print("ªªªª ERROR UP is already playing")
+            }
         }
     }
     
@@ -133,8 +152,21 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
             try playerxUp.append( AVAudioPlayer(contentsOf: xUpURL!) )
             try playerxUp.append( AVAudioPlayer(contentsOf: xUpURL!) )
             
+            playersUp.append(playerxUp)
+            
             try playerxDown.append( AVAudioPlayer(contentsOf: xDownURL!) )
             try playerxDown.append( AVAudioPlayer(contentsOf: xDownURL!) )
+            playersDown.append(playerxDown)
+            
+            try playeryUp.append( AVAudioPlayer(contentsOf: yUpURL!) )
+            try playeryUp.append( AVAudioPlayer(contentsOf: yUpURL!) )
+            
+            playersUp.append(playeryUp)
+            
+            try playeryDown.append( AVAudioPlayer(contentsOf: yDownURL!) )
+            try playeryDown.append( AVAudioPlayer(contentsOf: yDownURL!) )
+            playersDown.append(playeryDown)
+            
         } catch{
             print("ERROR")
         }
@@ -255,38 +287,15 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
             
             
             Log.debug("Gesture:\(gesture)")
-            if buttonToggleStatus  && gesture.idx == 0 && gesture.type == TypeEvent.up {
+            if buttonToggleStatus  && gesture.idx >= 0 && gesture.idx < 2 && gesture.type == TypeEvent.up {
                 Log.debug(">               >>>>>>>>>>>>>>>>>")
                 
-                if( playerxUp[0]!.isPlaying == false){
-                    
-                    playerxUp[0]!.volume = 1
-                    playerxUp[0]!.play()
-                }
-                else if( playerxUp[1]!.isPlaying == false){
-                    
-                    playerxUp[1]!.volume = 1
-                    playerxUp[1]!.play()
-                }
-                else{
-                    print("ªªªª ERROR UP is already playing")
-                }
+                play(gesture.idx, gesture.type, 1.0)
             }
-            else if buttonToggleStatus && gesture.idx == 0 &&  gesture.type == TypeEvent.down {
+            if buttonToggleStatus  && gesture.idx >= 0 && gesture.idx < 2 && gesture.type == TypeEvent.down {
+                Log.debug("<<<<<<<<<<<<<<<                 <")
                 
-                Log.debug("<<<<<<<<<<<<<<<<                <")
-                
-                if( playerxDown[0]!.isPlaying == false){
-                    playerxDown[0]!.volume = 1
-                    playerxDown[0]!.play()
-                }
-                else if( playerxDown[1]!.isPlaying == false){
-                    playerxDown[1]!.volume = 1
-                    playerxDown[1]!.play()
-                }
-                else{
-                    print("ªªªª ERROR DOWN is already playing")
-                }
+                play(gesture.idx, gesture.type, 1.0)
             }
             
         }

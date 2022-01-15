@@ -115,9 +115,9 @@ struct Queue {
       }
       Log.debug( str )
       
-      if( initialized ){
-          g =  recognizeDireccionChange(e)
-      }
+      
+      g =  recognizeDireccionChange(e)
+  
       movementsAggPrevious = movementsAgg
       
       return g
@@ -179,17 +179,17 @@ struct Queue {
         let pct:Float = toRange(movementsAgg[idx], limitsMoveUp[idx], limitsMoveDown[idx])
         
         
-        if( ( previousGesture[idx] == nil || previousGesture[idx]!.type == TypeEvent.rest || previousGesture[idx]!.type == TypeEvent.down) &&  movementsAgg[idx] >= 5 ){
+        if( ( previousGesture[idx] == nil || previousGesture[idx]!.type == TypeEvent.rest || previousGesture[idx]!.type == TypeEvent.down) &&  movementsAgg[idx] >= 3 ){
             g = Gesture(idx: idx, type: TypeEvent.up, agg: movementsAgg[idx], delta: delta,level: pct)
             previousGesture[idx] = g
             
         }
-        else if ( ( previousGesture[idx] == nil || previousGesture[idx]!.type == TypeEvent.rest || previousGesture[idx]!.type == TypeEvent.up) &&  movementsAgg[idx] <= -5 ){
+        else if ( ( previousGesture[idx] == nil || previousGesture[idx]!.type == TypeEvent.rest || previousGesture[idx]!.type == TypeEvent.up) &&  movementsAgg[idx] <= -3 ){
             g = Gesture(idx: idx, type: TypeEvent.down, agg: movementsAgg[idx], delta: delta,level: pct)
             previousGesture[idx] = g
             
         }
-        else if abs(movementsAgg[idx]) < 5 {
+        else if abs(movementsAgg[idx]) < 3 {
             g = Gesture(idx:-1, type: TypeEvent.rest,agg: 0.0, delta: 0.0, level: 0.0)
             previousGesture[idx] = g
         }
