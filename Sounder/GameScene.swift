@@ -87,11 +87,7 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
     
     let factor:Float = 0.4
     
-    public func log(_ str:String){
-        if( buttonToggleStatus ){
-            print(str)
-        }
-    }
+
     
     public func setStatusMessage(msg:String){
         
@@ -115,7 +111,7 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
             }
             else{*/
                 let player = try AVAudioPlayer(contentsOf: soundFileURL)
-                log("playihg \(volume)")
+                Log.debug("playihg \(volume)")
                 player.volume = volume
                 player.play()
             //}
@@ -256,41 +252,36 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
         let ge = GiroEvent( startTime: timePrevious,endTime: timeCurrent,raw: raw)
 
         if let gesture = giroEventQueue.push(ge) {
-            var str = "Agg:"
-            let movementsAgg = giroEventQueue.getAggEvent()
-            for i in 0...5{
-                str +=  String(format: "%.2f", movementsAgg[i]).leftPadding(toLength: 10, withPad: " ") + " "
-            }
-            log( str )
             
-            log("Gesture:\(gesture)")
-            if buttonToggleStatus && gesture.type == TypeEvent.upDown  && gesture.agg > 3 && gesture.delta > 4 {
-                log(">               >>>>>>>>>>>>>>>>>")
+            
+            Log.debug("Gesture:\(gesture)")
+            if buttonToggleStatus  && gesture.idx == 0 && gesture.type == TypeEvent.up {
+                Log.debug(">               >>>>>>>>>>>>>>>>>")
                 
                 if( playerxUp[0]!.isPlaying == false){
                     
-                    playerxUp[0]!.volume = gesture.level
+                    playerxUp[0]!.volume = 1
                     playerxUp[0]!.play()
                 }
                 else if( playerxUp[1]!.isPlaying == false){
                     
-                    playerxUp[1]!.volume = gesture.level
+                    playerxUp[1]!.volume = 1
                     playerxUp[1]!.play()
                 }
                 else{
                     print("ªªªª ERROR UP is already playing")
                 }
             }
-            else if buttonToggleStatus && gesture.type == TypeEvent.downUp && gesture.agg < -3 &&  gesture.delta < -4 {
+            else if buttonToggleStatus && gesture.idx == 0 &&  gesture.type == TypeEvent.down {
                 
-                log("<<<<<<<<<<<<<<<<                <")
+                Log.debug("<<<<<<<<<<<<<<<<                <")
                 
                 if( playerxDown[0]!.isPlaying == false){
-                    playerxDown[0]!.volume = gesture.level
+                    playerxDown[0]!.volume = 1
                     playerxDown[0]!.play()
                 }
                 else if( playerxDown[1]!.isPlaying == false){
-                    playerxDown[1]!.volume = gesture.level
+                    playerxDown[1]!.volume = 1
                     playerxDown[1]!.play()
                 }
                 else{
@@ -299,19 +290,6 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
             }
             
         }
-        
-       
-        var str:String = String(format: "%d", timeCurrent).leftPadding(toLength: 6, withPad: " ") + " "
-        
-        for i in 0...5{
-            str += String(format: "%d", raw[i]).leftPadding(toLength: 6, withPad: " ") + " "
-        }
-        let translated = ge.getTranslated()
-        for i in 0...5{
-            str += String(format: "%.2f", translated[i]).leftPadding(toLength: 6, withPad: " ") + " "
-        }
-        str += String(buttonStatus)
-        log(str)
         
         if buttonCurrentStatus==1 && buttonStatus == 0 {
             buttonCurrentStatus = 0
@@ -326,6 +304,12 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
             }
             if (buttonLastUpTime - buttonLastDownTime) < 1000 {
                 buttonToggleStatus  = !buttonToggleStatus
+                if buttonToggleStatus {
+                    Log.setLevel(Log.LogType.debug)
+                }
+                else{
+                    Log.setLevel(Log.LogType.error)
+                }
             }
         }
         let aggregated = giroEventQueue.getAggEvent()
@@ -350,9 +334,9 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
                     strUp +=  String(format: "%d", self.limitsRestUp[i]!).leftPadding(toLength: 10, withPad: " ") + " "
                     strDown += String(format: "%d", self.limitsRestDown[i]!).leftPadding(toLength: 10, withPad: " ") + " "
                 }
-                log("limits")
-                log(strUp)
-                log(strDown)
+                Log.debug("limits")
+                Log.debug(strUp)
+                Log.debug(strDown)
                 
                 giroEventQueue.setlimitsRestUp([limitsRestUp[0]!,
                                                 limitsRestUp[1]!,
@@ -391,9 +375,9 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
                     strUp +=  String(format: "%d", self.limitsMoveUp[i]!).leftPadding(toLength: 10, withPad: " ") + " "
                     strDown += String(format: "%d", self.limitsMoveDown[i]!).leftPadding(toLength: 10, withPad: " ") + " "
                 }
-                log("limits Moving")
-                log(strUp)
-                log(strDown)
+                Log.debug("limits Moving")
+                Log.debug(strUp)
+                Log.debug(strDown)
                 giroEventQueue.setlimitsMoveUp([limitsMoveUp[0]!,
                                                 limitsMoveUp[1]!,
                                                 limitsMoveUp[2]!,
@@ -411,7 +395,7 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
         }
         
         if buttonToggleStatus == false && setupRest == false && setupMove == false && limitsRestUp[gX] != nil && limitsMoveUp[gX] != nil {
-            log("")
+            Log.debug("")
             
         }
 

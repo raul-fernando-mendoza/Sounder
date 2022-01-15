@@ -26,6 +26,16 @@ class GiroEvent {
                 let accel:Float = Float(raw[i]) / g
                 dXdYdZlXlYlZ[i] = pow((Float(endTime - startTime)/1000),2) * accel * 9.8
         }
+        var str:String = String(format: "%d", s).leftPadding(toLength: 6, withPad: " ") + " "
+        
+        for i in 0...5{
+            str += String(format: "%d", raw[i]).leftPadding(toLength: 6, withPad: " ") + " "
+        }
+        
+        for i in 0...5{
+            str += String(format: "%.2f", dXdYdZlXlYlZ[i]).leftPadding(toLength: 6, withPad: " ") + " "
+        }
+        Log.debug(str)
     }
     public func getStartTime() -> Int{
         return startTime

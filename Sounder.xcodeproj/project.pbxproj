@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8355DFA227925C0100C6AA04 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8355DFA127925C0100C6AA04 /* Log.swift */; };
 		8358F568278297C80067BDB7 /* GiroEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358F567278297C80067BDB7 /* GiroEvent.swift */; };
 		839070A0277A0B0F006739A7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8390709F277A0B0F006739A7 /* AppDelegate.swift */; };
 		839070A2277A0B0F006739A7 /* GameScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = 839070A1277A0B0F006739A7 /* GameScene.sks */; };
@@ -24,6 +25,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8355DFA127925C0100C6AA04 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		8358F567278297C80067BDB7 /* GiroEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiroEvent.swift; sourceTree = "<group>"; };
 		8390709C277A0B0F006739A7 /* Sounder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sounder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8390709F277A0B0F006739A7 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -85,6 +87,7 @@
 				839070AE277A0B14006739A7 /* LaunchScreen.storyboard */,
 				83DF6B162780E2840085208C /* Queue.swift */,
 				8358F567278297C80067BDB7 /* GiroEvent.swift */,
+				8355DFA127925C0100C6AA04 /* Log.swift */,
 			);
 			path = Sounder;
 			sourceTree = "<group>";
@@ -168,6 +171,7 @@
 			files = (
 				839070A6277A0B0F006739A7 /* GameScene.swift in Sources */,
 				8358F568278297C80067BDB7 /* GiroEvent.swift in Sources */,
+				8355DFA227925C0100C6AA04 /* Log.swift in Sources */,
 				839070A8277A0B0F006739A7 /* GameViewController.swift in Sources */,
 				839070A0277A0B0F006739A7 /* AppDelegate.swift in Sources */,
 				83DF6B172780E2840085208C /* Queue.swift in Sources */,
