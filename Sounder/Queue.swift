@@ -9,33 +9,40 @@ import Foundation
 
 let MAX_EVENT_TIME = 300
 
-enum TypeEvent: CaseIterable {
-    case rest, up, down, upDown, downUp
+enum EventType: CaseIterable {
+    case rest, up, down, upDown, downUp, upSlowing, downSlowing, changeAxis
 }
 
 struct Gesture{
-    var idx:Int
-    var type:TypeEvent
-    var agg:Float
-    var delta:Float
-    var level:Float
+    var axis:Int = -1
+    var directionCurrent:EventType = EventType.rest
+    var directionPrevious:EventType = EventType.rest
+
+    var valueCurrent:Float = 0.0
+    var valuePrevious:Float = 0.0
+    var max:Float = 0.0
+    var min:Float = 0.0
+    var deltaCurrent:Float = 0.0
+    var deltaPrevious:Float = 0.0
+    var level:Float = 0.0
+    var added:Float = 0.0
+    var addedPrevious:Float = 0.0
+    
 }
 
 struct Queue {
-    private var elements: [GiroEvent] = []
+    private var g:Gesture  = Gesture()
     
     private var limitsRestUp:[Float] = [0,0,0,0,0,0]
     private var limitsRestDown:[Float] = [0,0,0,0,0,0]
     private var limitsMoveUp:[Float] = [0,0,0,0,0,0]
     private var limitsMoveDown:[Float] = [0,0,0,0,0,0]
     
-    private var movementsAgg:[Float] = [0.0, 0.0 ,0.0 ,0.0 ,0.0 ,0.0 ]
-    private var movementsAggPrevious:[Float] = [0.0, 0.0 ,0.0 ,0.0 ,0.0 ,0.0 ]
-    private var previousGesture:[Gesture?] = [Gesture?](repeating:nil, count: 6)
-    
+   
     private var initialized = false
-    
-    func span(_ value:Int,_ upperLimit:Int,_ lowerLimit:Int) -> Int{
+
+    //find a value removing the rest values
+    func removeRestValues(_ value:Int,_ upperLimit:Int,_ lowerLimit:Int) -> Int{
         if( value > upperLimit){
             return value - upperLimit
         }
@@ -44,7 +51,7 @@ struct Queue {
         }
     }
     func toRange(_ value:Float,_ upperLimit:Float,_ lowerLimit:Float) -> Float{
-        return (value) / (upperLimit - lowerLimit)
+        return (value - lowerLimit) / (upperLimit - lowerLimit)
     }
     func biggerIndexAgg(_ values:[Float]) -> Int{
         var idx:Int = 0
@@ -79,123 +86,101 @@ struct Queue {
             initialized = true
         }
     }
-  mutating func push(_ e: GiroEvent) -> Gesture? {
-      var g:Gesture? = nil
-      elements.append(e)
-      
-      for i in 0...5{
-          movementsAgg[i] = 0.0
-      }
-      
-      let lastTime = e.getEndTime() - MAX_EVENT_TIME
-      //first remove all old values
-      while (self.head != nil) {
-        let e:GiroEvent = self.head!
-          if e.getStartTime() < lastTime{
-              self.pop()
-          }
-          else{
-              break
+  mutating func add(_ e: GiroEvent) -> Gesture? {
+    
+      //first find out if the sensor is at rest
+      let translated = e.getTranslated()
+      var isRest:Bool = true
+      for i in 0...2{
+          if translated[i] < limitsRestDown[i] || limitsRestUp[i] < translated[i] {
+              isRest = false
           }
       }
-      // now sum all the rest and find the previous if exist
-      for e in elements{
-        if(e.getStartTime() >= lastTime){
-            let translated = e.getTranslated()
-            for i in 0...5{
-                movementsAgg[i] += translated[i]
-            }
-        }
+
+      if isRest == true {
+          Log.debug("is at rest")
+          g.directionCurrent = EventType.rest
+          g.directionCurrent = EventType.changeAxis
+          g.directionPrevious = EventType.changeAxis
+          g.max = 0.0
+          g.min = 0.0
+          g.deltaCurrent = 0
+          g.deltaPrevious = 0
+          g.level = 0.0
+          g.valueCurrent = 0.0
+          g.valuePrevious = 0.0
+          g.added = 0.0
+          g.addedPrevious = 0.0
       }
+      else{
+        g.directionPrevious = g.directionCurrent
+        g.deltaPrevious = g.deltaCurrent
+        g.valuePrevious = g.valueCurrent
+          
+          //find out if the movement is still in the same axis as before if the axis have change reinitilize everything and start over
+        let axis = biggerIndexAgg(e.getTranslated())
       
-      var str = "Agg:"
-      
-      for i in 0...5{
-          str +=  String(format: "%.2f", movementsAgg[i]).leftPadding(toLength: 10, withPad: " ") + " "
-      }
-      Log.debug( str )
-      
-      
-      g =  recognizeDireccionChange(e)
-  
-      movementsAggPrevious = movementsAgg
-      
-      return g
-
-  }
-
-  mutating func pop() -> GiroEvent? {
-    guard !elements.isEmpty else {
-      return nil
-    }
-    return elements.removeFirst()
-  }
-
-  var head: GiroEvent? {
-    return elements.first
-  }
-
-  var tail: GiroEvent? {
-    return elements.last
-  }
-  //agg degrees on the last half second
-    mutating func getAggEvent() -> [Float]{
-        return movementsAgg
-    }
-
-    /*
-    mutating func recognizeRest(_ e:GiroEvent) -> Gesture?{
-        var g:Gesture? = nil
-        var isRest = true
-        
-        let idx = biggerIndexAgg(movementsAgg)
-        
-        
-        for i in 0...2{
-            if movementsAgg[i] < limitsRestDown[i] || limitsRestUp[i] < movementsAgg[i] {
-                isRest = false
-            }
-        }
-        if isRest == true {
-            g = Gesture(idx:-1, type: TypeEvent.rest,agg: 0.0, delta: 0.0, level: 0.0)
-            previousGesture[i] = g
+        if g.axis != axis{
+            Log.debug("axis has changed")
+            g.axis = axis
+            g.directionCurrent = EventType.changeAxis
+            g.directionPrevious = EventType.changeAxis
+            g.max = 0.0
+            g.min = 0.0
+            g.deltaCurrent = 0
+            g.deltaPrevious = 0
+            g.level = 0.0
+            g.valueCurrent = 0.0
+            g.valuePrevious = 0.0
+            g.added = 0.0
+            g.addedPrevious = 0.0
         }
         else{
-            g = nil
-        }
-        return g
-    }
-     */
-    // return change of direccion
-    mutating func recognizeDireccionChange(_ e:GiroEvent) -> Gesture?{
-        var g:Gesture? = nil
-        
-        let idx = biggerIndexAgg(movementsAgg)
-        
-        //find out the delta
-        let delta:Float =  movementsAgg[idx] - movementsAggPrevious[idx]
-        
-        //find out the level
-        let pct:Float = toRange(movementsAgg[idx], limitsMoveUp[idx], limitsMoveDown[idx])
-        
-        
-        if( ( previousGesture[idx] == nil || previousGesture[idx]!.type == TypeEvent.rest || previousGesture[idx]!.type == TypeEvent.down) &&  movementsAgg[idx] >= 3 ){
-            g = Gesture(idx: idx, type: TypeEvent.up, agg: movementsAgg[idx], delta: delta,level: pct)
-            previousGesture[idx] = g
+            //find out the direction of the change in value
+            g.valueCurrent = translated[axis]
+            g.added += g.valueCurrent
+            if( g.valueCurrent >= g.valuePrevious){
+                g.directionCurrent = EventType.up
+            }
+            else{
+                g.directionCurrent = EventType.down
+            }
+            g.deltaCurrent = abs(abs(g.valueCurrent) - abs(g.valuePrevious))
+            if (g.directionPrevious == EventType.down || g.directionPrevious == EventType.downSlowing ) && g.directionCurrent == EventType.up {
+                g.directionCurrent = EventType.downUp
+                g.min = g.valuePrevious
+                g.addedPrevious = g.added
+                g.added = 0
+            }
+            else if (g.directionPrevious == EventType.up || g.directionPrevious == EventType.upSlowing) && g.directionCurrent == EventType.down{
+                g.directionCurrent = EventType.upDown
+                g.max = g.valuePrevious
+                g.addedPrevious = g.added
+                g.added = 0
+            }
+            else if g.deltaCurrent < g.deltaPrevious && g.valueCurrent >= g.valuePrevious{
+                g.directionCurrent = EventType.upSlowing
+                g.max = g.valueCurrent
+            }
+            else if g.deltaCurrent < g.deltaPrevious && g.valueCurrent < g.valuePrevious{
+                g.directionCurrent = EventType.downSlowing
+                g.min = g.valueCurrent
+            }
+                
+
+            Log.debug("gesture:\(g)")
             
-        }
-        else if ( ( previousGesture[idx] == nil || previousGesture[idx]!.type == TypeEvent.rest || previousGesture[idx]!.type == TypeEvent.up) &&  movementsAgg[idx] <= -3 ){
-            g = Gesture(idx: idx, type: TypeEvent.down, agg: movementsAgg[idx], delta: delta,level: pct)
-            previousGesture[idx] = g
             
+          
         }
-        else if abs(movementsAgg[idx]) < 3 {
-            g = Gesture(idx:-1, type: TypeEvent.rest,agg: 0.0, delta: 0.0, level: 0.0)
-            previousGesture[idx] = g
-        }
-        return g
-        
-    }
+      }
+      return g
+      
+  }
+
+
+     
+   
 
 
 }

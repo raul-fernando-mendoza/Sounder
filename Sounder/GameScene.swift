@@ -104,9 +104,9 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
          
     }
     
-    func play(_ idx:Int,_ te:TypeEvent,_ volume:Float){
+    func play(_ idx:Int,_ te:EventType,_ volume:Float){
         
-        if te == TypeEvent.up{
+        if te == EventType.upDown || te == EventType.upSlowing {
             let playerUp = playersUp[idx]
             if( playerUp[0]!.isPlaying == false){
                 
@@ -122,7 +122,7 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
                 print("ªªªª ERROR UP is already playing")
             }
         }
-        else if te == TypeEvent.down{
+        else if te == EventType.downUp || te == EventType.downSlowing{
             let playerDown = playersDown[idx]
             if( playerDown[0]!.isPlaying == false){
                 
@@ -283,19 +283,33 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
     func processMessage(timeCurrent:Int,timePrevious:Int,raw:[Int],buttonStatus:Int){
         let ge = GiroEvent( startTime: timePrevious,endTime: timeCurrent,raw: raw)
 
-        if let gesture = giroEventQueue.push(ge) {
+        if let gesture = giroEventQueue.add(ge) {
             
             
-            Log.debug("Gesture:\(gesture)")
-            if buttonToggleStatus  && gesture.idx >= 0 && gesture.idx < 2 && gesture.type == TypeEvent.up {
+            
+            if buttonToggleStatus  && gesture.axis == 0
+                && gesture.directionCurrent == EventType.upDown && gesture.addedPrevious >  4{
                 Log.debug(">               >>>>>>>>>>>>>>>>>")
                 
-                play(gesture.idx, gesture.type, 1.0)
+                play(gesture.axis, gesture.directionCurrent, 1.0)
             }
-            if buttonToggleStatus  && gesture.idx >= 0 && gesture.idx < 2 && gesture.type == TypeEvent.down {
+            if buttonToggleStatus  && gesture.axis == 0
+                &&  gesture.directionCurrent == EventType.downUp && gesture.addedPrevious < -4{
                 Log.debug("<<<<<<<<<<<<<<<                 <")
                 
-                play(gesture.idx, gesture.type, 1.0)
+                play(gesture.axis, gesture.directionCurrent, 1.0)
+            }
+            if buttonToggleStatus  && gesture.axis == 1
+                && gesture.directionCurrent == EventType.upDown && gesture.addedPrevious >  2{
+                Log.debug(">               //////////////////")
+                
+                play(gesture.axis, gesture.directionCurrent, 1.0)
+            }
+            if buttonToggleStatus  && gesture.axis == 1
+                &&  gesture.directionCurrent == EventType.downUp && gesture.addedPrevious < -2{
+                Log.debug("*****************                 <")
+                
+                play(gesture.axis, gesture.directionCurrent, 1.0)
             }
             
         }
@@ -321,7 +335,7 @@ class GameScene: SKScene,  CBPeripheralDelegate, CBCentralManagerDelegate {
                 }
             }
         }
-        let aggregated = giroEventQueue.getAggEvent()
+        let aggregated = ge.getTranslated()
         if setupRest == true{
             for i in 0...5 {
                 if limitsRestUp[i] == nil || aggregated[i] > limitsRestUp[i]! {
